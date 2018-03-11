@@ -1,0 +1,36 @@
+=> a = 2
+=> b = 3
+=> c = a*b
+=> print(c)
+6
+=> a = 2*3
+Error: Attempt to redeclare identifier 'a'.
+=> d = 0    
+=> print("10 / d = %", 10/d)  // The percent character is the current default placeholder.
+Error: Dividing by zero ('d' = 0).
+=> // Comment.
+=> 
+.................................................................................................
+=> string = "Hello, World!"
+=> print("%", string)
+Hello, World!
+=> 
+.................................................................................................
+=> a = 10+5
+=> b = a/3
+=> print(b)
+5.0
+=> 
+.................................................................................................
+=> z = "string" + 3 / "string"
+Error: Right side of arithmetic calculation is neither an integer nor a float.
+=>
+.................................................................................................
+=> print("% % % % %", 10, "+", 3, "=", 10+3)
+10 + 3 = 13
+=> 
+.................................................................................................
+=> print("Hello, %", "World!", 3)
+Error: Wrong number of arguments in print function (expected 1, got 2).
+=> 
+
