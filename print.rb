@@ -122,6 +122,7 @@ def inst_print(line, types)
                n = 0
                args_types = Hash.new
                
+               # This loop gets the types of arguments (and we can do that because we know that the order correct).
                remaining_types.values.each do |t|
                   if allowed.include? t
                      args_types[n] = t

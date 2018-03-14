@@ -4,12 +4,12 @@ $variable_type = Hash.new
 $tab = "\011"
 
 module Type
-   UNKNOWN = 0
+   UNKNOWN      = 0
 
-   STRING  = 1
-   INT     = 2
-   FLOAT   = 3
-   IDENT   = 4
+   STRING       = 1
+   INT          = 2
+   FLOAT        = 3
+   IDENT        = 4
 
    OPEN_PAREN   = 5
    CLOSED_PAREN = 6
@@ -22,6 +22,8 @@ module Type
    MINUS        = 11
 
    COMMA        = 12
+
+   PRINT        = 13
 end
 
 def only_ident_chars(string)
@@ -188,7 +190,7 @@ def make_tokens(string)
    # If quote is still true we haven't got another double quote but there has once been one.
    # Maybe later we want to use this to allow multi-line strings. Who knows?
    if quote == true
-      puts "Error: Unexpected end of line while parsing string token."
+      puts "Error: Unexpected end of line while creating string token."
       return false
    end
 
@@ -255,7 +257,11 @@ def get_types(tokens)
          result, place = only_ident_chars(token[1..token.length-1])
 
          if result == true
-            types[n] = Type::IDENT
+            if token == "print"
+               types[n] = Type::PRINT
+            else
+               types[n] = Type::IDENT
+            end
          else
             puts "Error: Invalid character '#{token[place+1]}' in identifier token."
             return false

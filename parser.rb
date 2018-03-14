@@ -27,8 +27,6 @@ def handle_comments(line, types)
    return line
 end
 
-                     
-
 def do_arithmetic_low_precedence(line, types)
    n = 0
    changed = false  # If this is true, there was something changed so we have to know that.
@@ -40,35 +38,48 @@ def do_arithmetic_low_precedence(line, types)
             return false, false
          end
 
-         left  = line[n-1]
          right = line[n+1]
-
-         left_type  = types[n-1]
-         right_type = types[n+1]
-
-         error = false
-         float = false
 
          if right == nil
             puts "Error: Missing right side of arithmetic calculation."
             return false, false
          end
-         
+
+         right_type = types[n+1]
+
+         left  = line[n-1]
+         left_type  = types[n-1]
+
+         float = false
+
+         # This implements the plus operator for strings to append them.
+         if left_type == Type::STRING and right_type == Type::STRING
+            right = right[1..right.length-2]
+            left = left[1..left.length-2]
+
+            quote = "\""
+
+            result = quote + left + right + quote  # We have to add quotes manually since we will need those to know it's a string.
+            line[n-1..n+1] = result  # Replace the 3 entries with the result.
+
+            changed = true
+            return line, changed
+         end
+
+         left_is_ident = false
+
          # This looks for identfiers on the left.
          if left_type == Type::IDENT
             if $variables.keys.include? left
-               if $variable_type[left] != Type::INT
-                  if $variable_type[left] != Type::FLOAT
-                     puts "Error: Identifier '#{left}' is not of numeric type."
-                     return false, false
-                  else 
-                     # Replace the identifier with the actual value of it and set the type to the type of the identfiers value.
-                     left_type = $variable_type[left] 
-                     left = $variables[left]
-                  end
-               else
+
+               if $variable_type[left] == Type::INT or $variable_type[left] == Type::FLOAT
                   left_type = $variable_type[left] 
                   left = $variables[left]
+               elsif $variable_type[left] == Type::STRING
+                  left_type = Type::STRING
+                  left = $variables[left]
+
+                  left_is_ident = true
                end
             else
                puts "Error: Undeclared identifier '#{left}' in arithmetic calulation."
@@ -76,21 +87,20 @@ def do_arithmetic_low_precedence(line, types)
             end
          end
 
+         right_is_ident = false
+
          # This looks for identfiers on the right.
          if right_type == Type::IDENT
             if $variables.keys.include? right
-               if $variable_type[right] != Type::INT
-                  if $variable_type[right] != Type::FLOAT
-                     puts "Error: Identifier '#{right}' is not of numeric type."
-                     return false, false
-                  else 
-                     # Replace the identifier with the actual value of it and set the type to the type of the identfiers value.
-                     right_type = $variable_type[right] 
-                     right = $variables[right]
-                  end
-               else
+
+               if $variable_type[right] == Type::INT or $variable_type[right] == Type::FLOAT
                   right_type = $variable_type[right] 
                   right = $variables[right]
+               elsif $variable_type[right] == Type::STRING
+                  right_type = Type::STRING
+                  right = $variables[right]
+
+                  right_is_ident = true
                end
             else
                puts "Error: Undeclared identifier '#{right}' in arithmetic calulation."
@@ -99,10 +109,27 @@ def do_arithmetic_low_precedence(line, types)
          end
 
 
+         # This implements the plus operator for strings to append them (after resolving identfiers).
+         if left_type == Type::STRING and right_type == Type::STRING
+            
+            # We want to remove the quotes if they aren't idents.
+            right = right[1..right.length-2] if !right_is_ident
+            left = left[1..left.length-2] if !left_is_ident
+               
+
+            quote = "\""
+
+            result = quote + left + right + quote  # We have to add quotes manually since we will need those to know it's a string.
+            line[n-1..n+1] = result  # Replace the 3 entries with the result.
+
+            changed = true
+            return line, changed
+         end
+
          if left_type != Type::INT
             if left_type != Type::FLOAT
-               puts "Error: Left side of arithmetic calculation is neither an integer nor a float."
-               error = true
+               puts "Error: Left side of arithmetic calculation is not of numeric type."
+               return false, false
             else
                float = true
             end
@@ -110,15 +137,11 @@ def do_arithmetic_low_precedence(line, types)
 
          if right_type != Type::INT
             if right_type != Type::FLOAT
-               puts "Error: Right side of arithmetic calculation is neither an integer nor a float."
-               error = true
+               puts "Error: Right side of arithmetic calculation is not of numeric type."
+               return false, false
             else
                float = true
             end
-         end
-
-         if error
-            return false, false
          end
 
          if float 
@@ -140,34 +163,29 @@ def do_arithmetic_low_precedence(line, types)
             return false, false
          end
 
-         left  = line[n-1]
          right = line[n+1]
-
-         left_type  = types[n-1]
-         right_type = types[n+1]
-
-         error = false
-         float = false
 
          if right == nil
             puts "Error: Missing right side of arithmetic calculation."
             return false, false
          end
-         
+
+         left = line[n-1]
+         left_type = types[n-1]
+
+         right_type = types[n+1]
+
+         float = false
+
          # This looks for identfiers on the left.
          if left_type == Type::IDENT
             if $variables.keys.include? left
-               if $variable_type[left] != Type::INT
-                  if $variable_type[left] != Type::FLOAT
-                     puts "Error: Identifier '#{left}' is not of numeric type."
-                     return false, false
-                  else 
-                     # Replace the identifier with the actual value of it and set the type to the type of the identfiers value.
-                     left_type = $variable_type[left] 
-                     left = $variables[left]
-                  end
-               else
+
+               if $variable_type[left] == Type::INT or $variable_type[left] == Type::FLOAT
                   left_type = $variable_type[left] 
+                  left = $variables[left]
+               elsif $variable_type[left] == Type::STRING
+                  left_type = Type::STRING
                   left = $variables[left]
                end
             else
@@ -176,20 +194,16 @@ def do_arithmetic_low_precedence(line, types)
             end
          end
 
+
          # This looks for identfiers on the right.
          if right_type == Type::IDENT
             if $variables.keys.include? right
-               if $variable_type[right] != Type::INT
-                  if $variable_type[right] != Type::FLOAT
-                     puts "Error: Identifier '#{right}' is not of numeric type."
-                     return false, false
-                  else 
-                     # Replace the identifier with the actual value of it and set the type to the type of the identfiers value.
-                     right_type = $variable_type[right] 
-                     right = $variables[right]
-                  end
-               else
+
+               if $variable_type[right] == Type::INT or $variable_type[right] == Type::FLOAT
                   right_type = $variable_type[right] 
+                  right = $variables[right]
+               elsif $variable_type[right] == Type::STRING
+                  right_type = Type::STRING
                   right = $variables[right]
                end
             else
@@ -198,11 +212,10 @@ def do_arithmetic_low_precedence(line, types)
             end
          end
 
-
          if left_type != Type::INT
             if left_type != Type::FLOAT
-               puts "Error: Left side of arithmetic calculation is neither an integer nor a float."
-               error = true
+               puts "Error: Left side of arithmetic calculation is not of numeric type."
+               return false, false
             else
                float = true
             end
@@ -210,15 +223,11 @@ def do_arithmetic_low_precedence(line, types)
 
          if right_type != Type::INT
             if right_type != Type::FLOAT
-               puts "Error: Right side of arithmetic calculation is neither an integer nor a float."
-               error = true
+               puts "Error: Right side of arithmetic calculation is not of numeric type."
+               return false, false
             else
                float = true
             end
-         end
-
-         if error
-            return false, false
          end
 
          if float 
@@ -253,34 +262,30 @@ def do_arithmetic_high_precedence(line, types)
             return false, false
          end
 
-         left  = line[n-1]
          right = line[n+1]
-
-         left_type  = types[n-1]
-         right_type = types[n+1]
-
-         error = false
-         float = false
 
          if right == nil
             puts "Error: Missing right side of arithmetic calculation."
             return false, false
          end
 
+         left_type = types[n-1]
+         left = line[n-1]
+
+         right_type = types[n+1]
+
+         float = false
+
+
          # This looks for identfiers on the left.
          if left_type == Type::IDENT
             if $variables.keys.include? left
-               if $variable_type[left] != Type::INT
-                  if $variable_type[left] != Type::FLOAT
-                     puts "Error: Identifier '#{left}' is not of numeric type."
-                     return false, false
-                  else 
-                     # Replace the identifier with the actual value of it and set the type to the type of the identfiers value.
-                     left_type = $variable_type[left] 
-                     left = $variables[left]
-                  end
-               else
+
+               if $variable_type[left] == Type::INT or $variable_type[left] == Type::FLOAT
                   left_type = $variable_type[left] 
+                  left = $variables[left]
+               elsif $variable_type[left] == Type::STRING
+                  left_type = Type::STRING
                   left = $variables[left]
                end
             else
@@ -289,20 +294,16 @@ def do_arithmetic_high_precedence(line, types)
             end
          end
 
+
          # This looks for identfiers on the right.
          if right_type == Type::IDENT
             if $variables.keys.include? right
-               if $variable_type[right] != Type::INT
-                  if $variable_type[right] != Type::FLOAT
-                     puts "Error: Identifier '#{right}' is not of numeric type."
-                     return false, false
-                  else 
-                     # Replace the identifier with the actual value of it and set the type to the type of the identfiers value.
-                     right_type = $variable_type[right] 
-                     right = $variables[right]
-                  end
-               else
+
+               if $variable_type[right] == Type::INT or $variable_type[right] == Type::FLOAT
                   right_type = $variable_type[right] 
+                  right = $variables[right]
+               elsif $variable_type[right] == Type::STRING
+                  right_type = Type::STRING
                   right = $variables[right]
                end
             else
@@ -313,8 +314,8 @@ def do_arithmetic_high_precedence(line, types)
 
          if left_type != Type::INT
             if left_type != Type::FLOAT
-               puts "Error: Left side of arithmetic calculation is neither an integer nor a float."
-               error = true
+               puts "Error: Left side of arithmetic calculation is not of numeric type."
+               return false, false
             else
                float = true
             end
@@ -322,15 +323,11 @@ def do_arithmetic_high_precedence(line, types)
 
          if right_type != Type::INT
             if right_type != Type::FLOAT
-               puts "Error: Right side of arithmetic calculation is neither an integer nor a float."
-               error = true
+               puts "Error: Right side of arithmetic calculation is not of numeric type."
+               return false, false
             else
                float = true
             end
-         end
-
-         if error
-            return false, false
          end
 
          if float 
@@ -352,11 +349,7 @@ def do_arithmetic_high_precedence(line, types)
             return false, false
          end
 
-         left  = line[n-1]
          right = line[n+1]
-
-         left_type  = types[n-1]
-         right_type = types[n+1]
 
          if right == nil
             puts "Error: Missing right side of arithmetic calculation."
@@ -366,20 +359,20 @@ def do_arithmetic_high_precedence(line, types)
             return false, false
          end
 
+         left = line[n-1]
+         left_type = types[n-1]
+
+         right_type = types[n+1]
+
          # This looks for identfiers on the left.
          if left_type == Type::IDENT
             if $variables.keys.include? left
-               if $variable_type[left] != Type::INT
-                  if $variable_type[left] != Type::FLOAT
-                     puts "Error: Identifier '#{left}' is not of numeric type."
-                     return false, false
-                  else 
-                     # Replace the identifier with the actual value of it and set the type to the type of the identfiers value.
-                     left_type = $variable_type[left] 
-                     left = $variables[left]
-                  end
-               else
+
+               if $variable_type[left] == Type::INT or $variable_type[left] == Type::FLOAT
                   left_type = $variable_type[left] 
+                  left = $variables[left]
+               elsif $variable_type[left] == Type::STRING
+                  left_type = Type::STRING
                   left = $variables[left]
                end
             else
@@ -391,20 +384,14 @@ def do_arithmetic_high_precedence(line, types)
          # This looks for identfiers on the right.
          if right_type == Type::IDENT
             if $variables.keys.include? right
-               if $variable_type[right] != Type::INT
-                  if $variable_type[right] != Type::FLOAT
-                     puts "Error: Identifier '#{right}' is not of numeric type."
-                     return false, false
-                  else 
-                     temp_right = right
 
-                     right_type = $variable_type[right] 
-                     right = $variables[right]
-                  end
-               else
+               if $variable_type[right] == Type::INT or $variable_type[right] == Type::FLOAT
                   temp_right = right
 
                   right_type = $variable_type[right] 
+                  right = $variables[right]
+               elsif $variable_type[right] == Type::STRING
+                  right_type = Type::STRING
                   right = $variables[right]
                end
             else
@@ -416,20 +403,20 @@ def do_arithmetic_high_precedence(line, types)
          # Here, we want to use 0 as an integer (not a string) because in $variables ints don't get stored as a string,
          # they get stored with the actual int-value.
          if right == 0
-            puts "Error: Dividing by zero ('#{temp_right}' = 0)."
+            puts "Error: Dividing by zero (#{temp_right} = 0)."
             return false, false
          end
 
          if left_type != Type::INT
             if left_type != Type::FLOAT
-               puts "Error: Left side of arithmetic calculation is neither an integer nor a float."
+               puts "Error: Left side of arithmetic calculation is not of numeric type."
                return false, false
             end
          end
 
          if right_type != Type::INT
             if right_type != Type::FLOAT
-               puts "Error: Right side of arithmetic calculation is neither an integer nor a float."
+               puts "Error: Right side of arithmetic calculation is not of numeric type."
                return false, false
             end
          end
@@ -450,6 +437,7 @@ end
 
 def decl(line, types)
    ident = line[0]
+   types.default = nil
 
    if types[1] == Type::EQUALS
       # print line, "\n"
@@ -484,6 +472,7 @@ def decl(line, types)
                puts "Error: Unexpected token '#{line[3]}'."
             end
          end
+         
       # Float declaration.
       elsif types[2] == Type::FLOAT
          if $variables.keys.include? ident
@@ -498,6 +487,7 @@ def decl(line, types)
                puts "Error: Unexpected token '#{line[3]}'."
             end
          end
+         
       # Declarations based on other identifiers.
       elsif types[2] == Type::IDENT
          if $variables.keys.include? ident
@@ -525,7 +515,7 @@ def decl(line, types)
          end
       end
    else
-      puts "Error: Expected '=' after identifier '#{line[0]}'."
+      puts "Error: Expected '=' after identifier '#{ident}'."
    end
 end
 

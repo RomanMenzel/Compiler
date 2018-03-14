@@ -54,21 +54,16 @@ while true
    # print types, "\n"
    # puts
 
-   #next
    next if !line
 
-   if types[0] == Type::IDENT
-      if line[0] == "print"
-         inst_print(line, types)
-
-      else
-         decl(line, types)
-
-         # puts "Unknown identifier '#{line[0]}'."
-      end
-
+   if types[0] == Type::PRINT
+      inst_print(line, types)
+   elsif types[0] == Type::IDENT
+      decl(line, types)
    else
       puts "Error: Right now, you can only start a line with an identifier!"
    end
 
 end
+
+
